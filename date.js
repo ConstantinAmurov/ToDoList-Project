@@ -17,7 +17,7 @@ exports.getDate = function() {
   //NEW VARIANT
   day = today.toLocaleString("en-US", options); //
   return day;
-}
+};
 exports.getDay = function() {
   let day = "";
 
@@ -35,4 +35,4 @@ exports.getDay = function() {
   //NEW VARIANT
   day = today.toLocaleString("en-US", options); //
   return day;
-}
+};
