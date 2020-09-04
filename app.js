@@ -15,13 +15,16 @@ app.use(bodyParser.urlencoded({
 app.use(express.static("public"));
 
 const url = "mongodb://localhost:27017/todoListDB";
+const tasks = [];
+
 //const client = new MongoClient(uri,{ useUnifiedTopology: true } );
 try {
   mongoose.connect(url, {
     useUnifiedTopology: true,
     useNewUrlParser: true
   }, () => {
-//asd
+    console.log(tasks + "Beginning");
+    //asd
 
     const itemsSchema = {
       name: String
@@ -39,50 +42,66 @@ try {
       name: " <---- Hit this to delete a task"
     });
     const defaultTasks = [task_1, task_2, task_3];
-    Item.insertMany(defaultTasks, (err) => {
-      if (err) console.log(err);
-      else console.log("Succesfully added defaultTasks to DB");
-    }
-    );
-
-  });
 
 
+
+
+    app.get("/", function(req, res) {
+
+      Item.find({}, function(err, foundItems) {
+        if (foundItems.length === 0) {
+          Item.insertMany(defaultTasks, (err) => {
+            if (err) console.log(err);
+            else console.log("Succesfully added defaultTasks to DB");
+          });
+          res.redirect("/");
+        } else {
+          res.render("list", {
+            listTitle: "Today",
+            newListTask: foundItems
+          });
+        }
+
+
+      });
+    });
+
+    app.get("/work", (req, res) => {
+      res.render("list", {
+        listTitle: "Work",
+        newListTask: workTasks
+      });
+    });
+
+    app.post("/", function(req, res) {
+      let taskName = req.body.newTask;
+      const task = new Item({
+        name: taskName
+      });
+
+      task.save(function(err) {
+        if (err) console.log(err);
+        else console.log("Succesfully saved task to db");
+      });
+      res.redirect("/");
+    });
+    app.post("/delete",(req,res)=> {
+      const checkedItemId= req.body.checkbox;
+      Item.findByIdAndRemove({_id: checkedItemId},(err)=> {
+        if(err) console.log(err);
+        else console.log("Succesfully deleted the item with ID :" + checkedItemId);
+      });
+      res.redirect("/");
+    });
+
+    app.get("/about", function(req, res) {
+      res.render("about");
+    });
+  })
 } catch (error) {
   console.log("Could not connect");
 }
 
-app.get("/", function(req, res) {
-
-  let day = date.getDate();
-
-  res.render("list", {
-    listTitle: "Today",
-    newListTask: tasks
-  });
-});
-app.get("/work", (req, res) => {
-  res.render("list", {
-    listTitle: "Work",
-    newListTask: workTasks
-  });
-});
-
-app.post("/", function(req, res) {
-  let task = req.body.newTask;
-
-  if (req.body.list === "Work") {
-    workTasks.push(task);
-    res.redirect("/work");
-  } else {
-    tasks.push(task);
-    res.redirect("/");
-  }
-
-});
-app.get("/about", function(req, res) {
-  res.render("about");
-});
 //OR WE CAN USE res.sendFile() to send a  html file; res.sendFile(__dirname + "/index.html")
 
 // That means render a file called list which we will pass that file a variable named kindOfDay and the value is gonna equal to day
