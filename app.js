@@ -5,8 +5,6 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const _ = require("lodash");
 
-
-
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -15,17 +13,20 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static("public"));
 
-const url = "mongodb://localhost:27017/todoListDB";
+//const url = "mongodb+srv://Constantin:123456@cluster0.ehls6.mongodb.net/todoListDB?retryWrites=true&w=majority"; URL vechi
 const tasks = [];
 
 //const client = new MongoClient(uri,{ useUnifiedTopology: true } );
 try {
-  mongoose.connect(url, {
+  mongoose.connect("mongodb+srv://Constantin:<password>@cluster0.ehls6.mongodb.net/todoListDB?retryWrites=true&w=majority", {
     useUnifiedTopology: true,
     useNewUrlParser: true
   }, () => {
     console.log(tasks + "Beginning");
     //asd
+    mongoose.connection.on('connected', () => {
+      console.log("Connected Succesfully");
+    })
 
     const itemsSchema = {
       name: String
@@ -51,16 +52,17 @@ try {
     const List = mongoose.model("List", listSchema);
 
 
-    app.get("/", function(req, res) {
+    app.get("/", function(req, res) { //Se apelează la accesarea calei "/"
 
-      Item.find({}, function(err, foundItems) {
-        if (foundItems.length === 0) {
-          Item.insertMany(defaultTasks, (err) => {
+      Item.find({}, function(err, foundItems) { //Funcție de căutare în colecție
+        if (foundItems.length === 0) { //foundItems => Obiectele găsite
+          //Dacă baza noastră de date este goală
+          Item.insertMany(defaultTasks, (err) => { // Se introduc itemurile diin defaultTasks
             if (err) console.log(err);
             else console.log("Succesfully added defaultTasks to DB");
           });
           res.redirect("/");
-        } else {
+        } else { //Altfel, se introduc itemurile găsite
           res.render("list", {
             listTitle: "Today",
             newListTask: foundItems
@@ -97,33 +99,33 @@ try {
     });
 
     app.post("/", function(req, res) {
-      const taskName = req.body.newTask;
-      const listName = _.capitalize(req.body.list);
+      const taskName = req.body.newTask; //Denumirea task-ului
+      const listName = _.capitalize(req.body.list); //Denumirea listei din care face parte
       const task = new Item({
-        name: taskName
+        name: taskName  //Crearea de item nou
       });
-      if (listName === "Today") {
-        task.save(function(err) {
+      if (listName === "Today") { //Dacă este lista default ->
+        task.save(function(err) { //Se salvează in lista de bază
           if (err) console.log(err);
           else console.log("Succesfully saved task to db");
         });
         res.redirect("/");
-      } else {
-        List.findOne({
-          name: listName
+      } else { //Altfel, introducem în lista corespunzătoare
+        List.findOne({ //Funcție de căutare în colecție
+          name: listName // Selectează lista cu numele listName
         }, (err, foundList) => {
-          foundList.items.push(task);
-          foundList.save();
-          res.redirect("/" + listName);
+          foundList.items.push(task); //Introduce în lista selectată
+          foundList.save(); //Salvează lista;
+          res.redirect("/" + listName); //Redirectionare la pagina corespunzătoare
         })
       }
     });
 
     app.post("/delete", (req, res) => {
-      const checkedItemId = req.body.checkbox;
-      const listName = _.capitalize(req.body.listName);
-      if (listName === "Today") {
-        Item.findByIdAndRemove({
+      const checkedItemId = req.body.checkbox; //Stocăm ID-ul elementului ce vrem să fie șters
+      const listName = _.capitalize(req.body.listName); //Funcție ce transformă string-ul în string cu prima literă majusculă
+      if (listName === "Today") { // Verificăm dacă item este în lista de bază
+        Item.findByIdAndRemove({ // Funcție de găsire a obiectului după ID și ulterioara ștergere
           _id: checkedItemId
         }, (err) => {
           if (err) console.log(err);
@@ -131,23 +133,19 @@ try {
         });
         res.redirect("/");
       } else {
-        List.findOneAndUpdate({
+        List.findOneAndUpdate({ // Dacă nu, căutăm obiectul în lista cu numele corespunzător
           name: listName
         }, {
-          $pull: {
-            items: { // after pull we specify the particular field(array ) in our case that is the itesm array
-              _id: checkedItemId // we specify the data and what it is equal to
+          $pull: { //Funcție de extragere(ștergere) a obiectului căutat
+            items: {
+              _id: checkedItemId
             }
           }
-        }, (err, foundList) => { // this is the callback, obligatory
+        }, (err, foundList) => { // Acesta este callback-ul funcției, obligator
           if (!err) {
             res.redirect("/" + listName);
           }
-        })
-
-      }
-
-
+        })}
     });
 
     app.get("/about", function(req, res) {

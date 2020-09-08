@@ -7,8 +7,6 @@
 
   <%newListTask.forEach((item) => { %>
   <form id = "input" action="/delete" method="post">
-
-
     <div class="item">
 
       <input type="checkbox" name="checkbox" value="<%= item._id %>" onchange="this.form.submit()">
