@@ -70,8 +70,10 @@ button {
   background-color: #A683E3;
   color: #fff;
   font-size: 30px;
-  padding-bottom: 6px;
+  padding:6px;
   border-width: 0;
+  margin: 5px 20px 0px;
+  float:right;
 }
 
 input[type="text"] {
@@ -82,7 +84,7 @@ input[type="text"] {
   background: transparent;
   font-size: 20px;
   font-weight: 200;
-  width: 313px;
+  width: auto;
 }
 
 input[type="text"]:focus {
