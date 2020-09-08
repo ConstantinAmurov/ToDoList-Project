@@ -18,7 +18,7 @@ const tasks = [];
 
 //const client = new MongoClient(uri,{ useUnifiedTopology: true } );
 try {
-  mongoose.connect("mongodb+srv://Constantin:Test123@cluster0.ehls6.mongodb.net/todoListDB?retryWrites=true&w=majority", {
+  mongoose.connect("mongodb+srv://Constantin:<password>@cluster0.ehls6.mongodb.net/todoListDB?retryWrites=true&w=majority", {
     useUnifiedTopology: true,
     useNewUrlParser: true
   }, () => {
